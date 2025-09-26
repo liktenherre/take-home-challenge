@@ -16,10 +16,6 @@ class Tenant extends BaseEntity {
   @Column({unique: true})
   email!: string;
 
-  @Field({nullable: true})
-  @Column({nullable: true})
-  isRentLate?: boolean | null;
-
   @Field()
   @CreateDateColumn()
   createdAt!: Date;

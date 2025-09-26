@@ -45,14 +45,20 @@ class Lease extends BaseEntity {
   @Column({type: 'float'})
   deposit!: number;
 
-  /* Belongs to tenant */
+  @Field({nullable: true})
+  @Column({nullable: true})
+  rentDueDate?: Date;
+
+  @Field({nullable: true})
+  @Column({nullable: true})
+  lastPaymentDate?: Date;
+
   @ManyToOne(() => Tenant, {nullable: true})
   private tenant?: Relation<Tenant> | null;
 
   @Column()
   tenantId!: number;
 
-  /* Belongs to apartment */
   @ManyToOne(() => Apartment, {nullable: true})
   private apartment?: Relation<Apartment> | null;
 
@@ -81,6 +87,24 @@ class Lease extends BaseEntity {
     return apartment;
   }
 
+  @Field()
+  get isRentLate(): boolean {
+    if (!this.rentDueDate) return false;
+
+    const now = new Date();
+
+    if (now <= this.rentDueDate) return false;
+
+    return !this.lastPaymentDate || this.lastPaymentDate < this.rentDueDate;
+  }
+
+  @Field()
+  get isActive(): boolean {
+    if (!this.end) return true;
+
+    return new Date() <= this.end;
+  }
+
   private enforceStartToStartOfDay(): void {
     if (this.start) {
       this.start = startOfDay(this.start);
@@ -93,7 +117,6 @@ class Lease extends BaseEntity {
     }
   }
 
-  // Validation function to make sure tenant don't have overlapping leases
   private async validateTenantNoOverlappingLeases(): Promise<void> {
     let conditions: FindOptionsWhere<Lease>[] = [
       {
@@ -120,7 +143,6 @@ class Lease extends BaseEntity {
       });
     }
 
-    // When updating an existing lease, don't compare with itself
     if (this.id) {
       conditions = conditions.map(c => ({...c, id: Not(this.id)}));
     }
@@ -130,7 +152,6 @@ class Lease extends BaseEntity {
     }
   }
 
-  // Validation function to make sure apartments don't have overlapping leases
   private async validateApartmentNoOverlappingLeases(): Promise<void> {
     let conditions: FindOptionsWhere<Lease>[] = [
       {
@@ -157,7 +178,6 @@ class Lease extends BaseEntity {
       });
     }
 
-    // When updating an existing lease, don't compare with itself
     if (this.id) {
       conditions = conditions.map(c => ({...c, id: Not(this.id)}));
     }

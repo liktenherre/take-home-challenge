@@ -1,6 +1,5 @@
-import {Query, Arg, Int, Resolver, Mutation, Args} from 'type-graphql';
+import {Arg, Args, Int, Mutation, Query, Resolver} from 'type-graphql';
 
-import Lease from '../lease/lease.entity';
 import {CreateTenantInput, UpdateTenantInput} from './tenant.dto';
 import Tenant from './tenant.entity';
 import TENANT_ERRORS from './tenant.errors';
@@ -45,36 +44,5 @@ export default class TenantResolver {
     await Tenant.delete(id);
 
     return tenant;
-  }
-
-  @Mutation(() => Boolean)
-  async markRentAsLate(@Arg('id', () => Int) id: number): Promise<boolean> {
-    const t = await Tenant.findOne({where: {id}});
-    if (t) {
-      const l = await Lease.find({where: {tenantId: id}});
-      if (l.length === 0) {
-        throw new Error("Tenant doesn't have any leases");
-      }
-
-      t.isRentLate = true;
-      await t.save();
-    }
-
-    return true;
-  }
-
-  @Mutation(() => Boolean)
-  async unmarkRentAsLate(@Arg('id', () => Int) id: number): Promise<boolean> {
-    const t = await Tenant.findOne({where: {id}});
-    if (t) {
-      const l = await Lease.find({where: {tenantId: id}});
-      if (l.length === 0) {
-        throw new Error("Tenant doesn't have any leases");
-      }
-      t.isRentLate = false;
-      await t.save();
-    }
-
-    return true;
   }
 }
