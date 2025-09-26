@@ -57,4 +57,29 @@ export default class LeaseResolver {
   async apartment(@Root() lease: Lease): Promise<Apartment> {
     return lease.getApartment();
   }
+
+  @Mutation(() => Boolean)
+  async setRentDueDate(@Arg('leaseId', () => Int) leaseId: number, @Arg('dueDate') dueDate: Date): Promise<boolean> {
+    const lease = await Lease.findOneOrFail({where: {id: leaseId}});
+    lease.rentDueDate = dueDate;
+    await lease.save();
+
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  async recordRentPayment(@Arg('leaseId', () => Int) leaseId: number, @Arg('paymentDate') paymentDate: Date): Promise<boolean> {
+    const lease = await Lease.findOneOrFail({where: {id: leaseId}});
+    lease.lastPaymentDate = paymentDate;
+    await lease.save();
+
+    return true;
+  }
+
+  @Query(() => [Lease])
+  async lateRentLeases(): Promise<Lease[]> {
+    const allLeases = await Lease.find();
+
+    return allLeases.filter(lease => lease.isActive && lease.isRentLate);
+  }
 }

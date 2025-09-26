@@ -1,4 +1,4 @@
-import {Query, Arg, Int, Resolver, Mutation, Args} from 'type-graphql';
+import {Arg, Args, Int, Mutation, Query, Resolver} from 'type-graphql';
 
 import {CreateTenantInput, UpdateTenantInput} from './tenant.dto';
 import Tenant from './tenant.entity';
